@@ -10,17 +10,17 @@ Since the representation used by HIVIDS is not user friendly, we propose this so
 Download the code from this repository.
 Unzip in your desired folder.
 Compile the code with :
-'gcc generate_can_rules_header.c -o generate_can_rules_header'
+'''gcc generate_can_rules_header.c -o generate_can_rules_header'''
 
 Include your "can_rules.txt" file in the same folder as the compiled program.
 
-Launch the program with : './generate_can_rules_header'
+Launch the program with : '''./generate_can_rules_header'''
 
 ## Input
 The input must be a single text file named 'can_rules.txt' included in the same directory as the parser.
-The file must respect the CAN Rule file structure, which is further detailed in the (rule sybtax guide)[IDSCAN_RulesSyntax.md].
+The file must respect the CAN Rule file structure, which is further detailed in the [rule sybtax guide](IDSCAN_RulesSyntax.md).
 
 ## Output
 The output of this program is a 'can_rules.h' file, written in the same directory as the parser program.
 This file contains a rule table formatted in the right format for HIVIDS, which you can then paste in your HIVIDS directory, before compiling and programming your hardware device.
-This file structure is not detailed here as it is not necessary to use this program, for further details please referr to the (HIVIDS project repository)[https://github.com/BastienMtn/HIVIDS].
+This file structure is not detailed here as it is not necessary to use this program, for further details please referr to the [HIVIDS project repository](https://github.com/BastienMtn/HIVIDS).
