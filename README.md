@@ -9,13 +9,15 @@ Since the representation used by HIVIDS is not user friendly, we propose this so
 
 ## How to use
 Download the code from this repository.
+
 Unzip in your desired folder.
+
 Compile the code with :
-'''gcc generate_can_rules_header.c -o generate_can_rules_header'''
+```gcc generate_can_rules_header.c -o generate_can_rules_header```
 
 Include your "can_rules.txt" file in the same folder as the compiled program.
 
-Launch the program with : '''./generate_can_rules_header'''
+Launch the program with : ```./generate_can_rules_header```
 
 ## Input
 The input must be a single text file named 'can_rules.txt' included in the same directory as the parser.
