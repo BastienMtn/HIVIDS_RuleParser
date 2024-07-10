@@ -15,13 +15,13 @@ Unzip in your desired folder.
 Compile the code with :
 ```gcc generate_can_rules_header.c -o generate_can_rules_header```
 
-Include your "can_rules.txt" file in the same folder as the compiled program.
+Include your **can_rules.txt** file in the same folder as the compiled program.
 
 Launch the program with : ```./generate_can_rules_header```
 
 ## Input
 The input must be a single text file named 'can_rules.txt' included in the same directory as the parser.
-The file must respect the CAN Rule file structure, which is further detailed in the [rule sybtax guide](IDSCAN_RulesSyntax.md).
+The file must respect the CAN Rule file structure, which is further detailed in the [rule syntax guide](IDSCAN_RulesSyntax.md).
 
 ## Output
 The output of this program is a 'can_rules.h' file, written in the same directory as the parser program.
