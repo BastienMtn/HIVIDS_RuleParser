@@ -1,5 +1,6 @@
 # HIVIDS_RuleParser
-This project is meant to be used with the HIVIDS project, see github.com/BastienMtn/HIVIDS .
+This project is meant to be used with the HIVIDS project, see [HIVIDS project repository](https://github.com/BastienMtn/HIVIDS).
+
 This program generates a **can_rules.h** C header file, that can be included in the HIVIDS project, from a **can_rules.txt** file.
 
 ## Fonctionnality
@@ -23,4 +24,4 @@ The file must respect the CAN Rule file structure, which is further detailed in 
 ## Output
 The output of this program is a 'can_rules.h' file, written in the same directory as the parser program.
 This file contains a rule table formatted in the right format for HIVIDS, which you can then paste in your HIVIDS directory, before compiling and programming your hardware device.
-This file structure is not detailed here as it is not necessary to use this program, for further details please referr to the [HIVIDS project repository](https://github.com/BastienMtn/HIVIDS).
+This file structure is not detailed here as it is not necessary to use this program, for further details please refer to the [HIVIDS project repository](https://github.com/BastienMtn/HIVIDS).
