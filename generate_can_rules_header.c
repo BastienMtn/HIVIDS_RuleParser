@@ -149,6 +149,8 @@ int main()
 
     CANRule current_rule;
 
+    int rule_count=0;
+
     while (fgets(line, sizeof(line), input))
     {
         if (!inside_options)
@@ -160,6 +162,7 @@ int main()
 
             if (num_scanned == 5)
             {
+                rule_count++;
                 // Parsing main components
                 current_rule.action = parse_action(action_str);
                 current_rule.extended = (extended_str[0] == 'E');
@@ -241,6 +244,7 @@ int main()
     }
 
     fprintf(output, "};\n\n");
+    fprintf(output, "int ruleCount = %d;\n\n", rule_count);
     fprintf(output, "#endif // CAN_RULES_H\n");
 
     fclose(input);

@@ -9,4 +9,6 @@ CANRule ruleTable[] = {
     { BLOCK, false, 384, false, BIDIRECTIONAL, {{UpLimit,"512"},{DownLimit,"0"},{Length,"8"}},3},
 };
 
+int ruleCount = 3;
+
 #endif // CAN_RULES_H
