@@ -88,9 +88,9 @@ enum OptionType parse_optiontype(const char *str)
     exit(EXIT_FAILURE);
 }
 
-const char *optiontype_to_string(enum Direction direction)
+const char *optiontype_to_string(enum OptionType option)
 {
-    switch (direction)
+    switch (option)
     {
     case UpLimit:
         return "UpLimit";
@@ -118,7 +118,7 @@ void parse_option(char *option_line, CANSecOption *option)
 
     char *value = strtok(NULL, ";");
     printf("Value :%s\n", value);
-    option->value = (void*)value;
+    option->value = (void *)value;
 }
 
 // Main function to read the can_rules.txt and generate can_rules.h
@@ -170,10 +170,9 @@ int main()
                 // Initialize options
                 current_rule.options = NULL;
 
-
-                snprintf(rule,255, "    { %s, %s, %lu, %s, %s, ",
-                                action_to_string(current_rule.action), current_rule.extended ? "true" : "false", current_rule.id,
-                                current_rule.isRequest ? "true" : "false", direction_to_string(current_rule.dir));
+                snprintf(rule, 255, "    { %s, %s, %lu, %s, %s, ",
+                         action_to_string(current_rule.action), current_rule.extended ? "true" : "false", current_rule.id,
+                         current_rule.isRequest ? "true" : "false", direction_to_string(current_rule.dir));
 
                 // Get the next line for options
                 if (fgets(line, sizeof(line), input))
@@ -183,30 +182,43 @@ int main()
                     {
                         inside_options = true;
                         start_options++; // Move past the '('
-                        strcat(rule,"{");
+                        strcat(rule, "{");
                         CANSecOption options[10];
+                        int num_options = 0;
                         while (inside_options && fgets(line, sizeof(line), input))
                         {
                             if (strchr(line, ')'))
                                 break;
-                            //printf("%s", line);
+                            // printf("%s", line);
+                            num_options++;
                             CANSecOption option;
                             parse_option(line, &option);
                             // Here you can store the option in a dynamic array if needed
                             // For now, just print the parsed options
                             char optionString[1024];
-                            snprintf(optionString, 128,"{%s,%s},", optiontype_to_string(option.type),(char *)option.value);
+                            if (option.type == Message)
+                            {
+                                snprintf(optionString, 128, "{%s,%s},", optiontype_to_string(option.type), (char *)option.value);
+
+                            }
+                            else
+                            {
+                                snprintf(optionString, 128, "{%s,\"%s\"},", optiontype_to_string(option.type), (char *)option.value);
+                            }
                             strcat(rule, optionString);
                         }
 
-                        rule[strlen(rule)-1]='}';
+                        rule[strlen(rule) - 1] = '}';
 
-                        strcat(rule,"},\n");
+                        char num_option_str[10];
+                        snprintf(num_option_str, 10, ",%d},\n", num_options);
+                        strcat(rule, num_option_str);
+
                         // Writing the rule to the output file
                         fprintf(output, rule);
 
                         // TODO - Pass the end of the rule in the text file and go to the next
-                        inside_options=false;
+                        inside_options = false;
                     }
                     else
                     {
