@@ -103,22 +103,36 @@ const char *optiontype_to_string(enum OptionType option)
     case Message:
         return "Message";
     default:
-        return "UNKNOWN_DIRECTION";
+        return "UNKNOWN_OPTION";
     }
 }
 
 // Helper function to parse options
-void parse_option(char *option_line, CANSecOption *option)
+CANSecOption parse_option(char *option_line)
 {
+    CANSecOption option;
     char *type = strtok(option_line, ":");
     while (*type == ' ')
         type++;
-    option->type = parse_optiontype(type);
+    option.type = parse_optiontype(type);
     printf("Type :%s\n", type);
 
     char *value = strtok(NULL, ";");
     printf("Value :%s\n", value);
-    option->value = (void *)value;
+    option.value = (void *)value;
+    return option;
+}
+
+CANRule init_can_rule(const char *action_str, const char *extended_str, const char *id_str, const char *isRequest_str,
+                      const char *direction_str) {
+    CANRule rule;
+    rule.action = parse_action(action_str);
+    rule.extended = (extended_str[0] == 'E');
+    rule.id = strtoul(id_str, NULL, 16);
+    rule.isRequest = (isRequest_str[0] == 'R');
+    rule.dir = parse_direction(direction_str);
+    rule.options = NULL;
+    return rule;
 }
 
 // Main function to read the can_rules.txt and generate can_rules.h
@@ -147,100 +161,78 @@ int main()
     char line[1024], rule[1024];
     bool inside_options = false;
 
-    CANRule current_rule;
-
     int rule_count=0;
 
     while (fgets(line, sizeof(line), input))
     {
-        if (!inside_options)
+        if (inside_options)
+            continue;
+        // Initial parsing for the main components
+        char action_str[16], extended_str[2], id_str[16], isRequest_str[2], direction_str[3];
+        int num_scanned = sscanf(line, "%15s %1s %15s %1s %2s",
+                                 action_str, extended_str, id_str, isRequest_str, direction_str);
+
+        if (num_scanned != 5)
         {
-            // Initial parsing for the main components
-            char action_str[16], extended_str[2], id_str[16], isRequest_str[2], direction_str[3];
-            int num_scanned = sscanf(line, "%15s %1s %15s %1s %2s",
-                                     action_str, extended_str, id_str, isRequest_str, direction_str);
-
-            if (num_scanned == 5)
-            {
-                rule_count++;
-                // Parsing main components
-                current_rule.action = parse_action(action_str);
-                current_rule.extended = (extended_str[0] == 'E');
-                current_rule.id = strtoul(id_str, NULL, 16);
-                current_rule.isRequest = (isRequest_str[0] == 'R');
-                current_rule.dir = parse_direction(direction_str);
-
-                // Initialize options
-                current_rule.options = NULL;
-
-                snprintf(rule, 255, "    { %s, %s, %lu, %s, %s, ",
-                         action_to_string(current_rule.action), current_rule.extended ? "true" : "false", current_rule.id,
-                         current_rule.isRequest ? "true" : "false", direction_to_string(current_rule.dir));
-
-                // Get the next line for options
-                if (fgets(line, sizeof(line), input))
-                {
-                    char *start_options = strchr(line, '(');
-                    if (start_options)
-                    {
-                        inside_options = true;
-                        start_options++; // Move past the '('
-                        strcat(rule, "{");
-                        CANSecOption options[10];
-                        int num_options = 0;
-                        while (inside_options && fgets(line, sizeof(line), input))
-                        {
-                            if (strchr(line, ')'))
-                                break;
-                            // printf("%s", line);
-                            num_options++;
-                            CANSecOption option;
-                            parse_option(line, &option);
-                            // Here you can store the option in a dynamic array if needed
-                            // For now, just print the parsed options
-                            char optionString[1024];
-                            if (option.type == Message)
-                            {
-                                snprintf(optionString, 128, "{%s,%s},", optiontype_to_string(option.type), (char *)option.value);
-
-                            }
-                            else
-                            {
-                                snprintf(optionString, 128, "{%s,\"%s\"},", optiontype_to_string(option.type), (char *)option.value);
-                            }
-                            strcat(rule, optionString);
-                        }
-
-                        rule[strlen(rule) - 1] = '}';
-
-                        char num_option_str[10];
-                        snprintf(num_option_str, 10, ",%d},\n", num_options);
-                        strcat(rule, num_option_str);
-
-                        // Writing the rule to the output file
-                        fprintf(output, rule);
-
-                        // TODO - Pass the end of the rule in the text file and go to the next
-                        inside_options = false;
-                    }
-                    else
-                    {
-                        snprintf(rule, 8, "NULL},\n");
-                        fprintf(stderr, "No options in rule: %s", line);
-                        fclose(input);
-                        fclose(output);
-                        return EXIT_FAILURE;
-                    }
-                }
-            }
-            else
-            {
-                fprintf(stderr, "Invalid line format: %s", line);
-                fclose(input);
-                fclose(output);
-                return EXIT_FAILURE;
-            }
+            fprintf(stderr, "Invalid line format: %s", line);
+            fclose(input);
+            fclose(output);
+            return EXIT_FAILURE;
         }
+
+        rule_count++;
+        // Parsing main components
+        CANRule current_rule = init_can_rule(action_str, extended_str, id_str, isRequest_str, direction_str);
+
+        snprintf(rule, 255, "    { %s, %s, %lu, %s, %s, ",
+                 action_to_string(current_rule.action), current_rule.extended ? "true" : "false", current_rule.id,
+                 current_rule.isRequest ? "true" : "false", direction_to_string(current_rule.dir));
+
+        // Get the next line for options
+        if (!fgets(line, sizeof(line), input))
+            continue;
+
+        char *start_options = strchr(line, '(');
+        if (!start_options) {
+            snprintf(rule, 8, "NULL},\n");
+            fprintf(stderr, "No options in rule: %s", line);
+            fclose(input);
+            fclose(output);
+            return EXIT_FAILURE;
+        }
+
+        inside_options = true;
+        start_options++; // Move past the '('
+        strcat(rule, "{");
+        //CANSecOption options[10];
+        int num_options = 0;
+        while (inside_options && fgets(line, sizeof(line), input))
+        {
+            if (strchr(line, ')'))
+                break;
+            num_options++;
+            CANSecOption option = parse_option(line);
+            // Here you can store the option in a dynamic array if needed
+            // For now, just print the parsed options
+            char optionString[1024];
+            char* format = "{%s,\"%s\"},";
+            if (option.type == Message)
+                format = "{%s,%s},";
+            snprintf(optionString, 128, format, optiontype_to_string(option.type), (char *)option.value);
+            strcat(rule, optionString);
+        }
+
+        rule[strlen(rule) - 1] = '}';
+
+        char num_option_str[10];
+        snprintf(num_option_str, 10, ",%d},\n", num_options);
+        strcat(rule, num_option_str);
+
+        // Writing the rule to the output file
+        fprintf(output, "%s", rule);
+
+        // TODO - Pass the end of the rule in the text file and go to the next
+        inside_options = false;
     }
 
     fprintf(output, "};\n\n");
