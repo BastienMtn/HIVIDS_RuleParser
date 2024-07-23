@@ -22,6 +22,7 @@ enum OptionType{
     Format,
     Length,
     Message,
+    Contains,
 };
 
 typedef struct{

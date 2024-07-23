@@ -84,9 +84,14 @@ enum OptionType parse_optiontype(const char *str)
         return Length;
     if (strcmp(str, "Message") == 0)
         return Message;
+    if (strcmp(str, "Contains") == 0)
+        return Contains;
     fprintf(stderr, "Unknown optiontype: %s\n", str);
     exit(EXIT_FAILURE);
 }
+
+CANRule init_can_rule(const char *action_str, const char *extended_str, const char *id_str, const char *isRequest_str,
+                      const char *direction_str);
 
 const char *optiontype_to_string(enum OptionType option)
 {
@@ -102,6 +107,8 @@ const char *optiontype_to_string(enum OptionType option)
         return "Length";
     case Message:
         return "Message";
+    case Contains:
+        return "Contains";
     default:
         return "UNKNOWN_OPTION";
     }

@@ -101,19 +101,22 @@ Since all messages are broadcasted on CANBus, there are no destinations if the f
 There are many options that could be used to further analyze a CANBus frame, in our case we have decided to implement a few of them that are described in this section.
 
 #### Message
-The first option possilbe is the message option, which allows the user to specifiy a string to be printed if the rule is applied to a frame.
+The first option possible is the message option, which allows the user to specify a string to be printed if any subsequent rule is applied to the frame.
 
 #### UpLimit
-The UpLimit is the maximum value the signal can have, if the value of the signal is superior to this value, then the action is performed.
+The UpLimit is the maximum value the signal can have. If the value of the signal is superior to this value, then the action is performed.
 
 #### DownLimit
-The DownLimit is the minimum value the signal can have, if the value of the signal is inferior to this value, then the action is performed.
+The DownLimit is the minimum value the signal can have. If the value of the signal is inferior to this value, then the action is performed.
 
 #### Length
-The length is the data size the message can have, between 1 to 8 bytes of data. If the CAN Frame Data Length Code is different from this value, the action is performed.
+The length is the data size the message can have, between 1 and 8 bytes of data. If the CAN Frame Data Length Code is different from this value, the action is performed.
 
 #### Format
-The format is the form the message should have, it represents a mask that, if applied to the Data field of the CAN Frame with a logic AND, should give 0. If not, the action is performed.
+The format is the form the message should have. It represents a mask that, if applied to the Data field of the CAN Frame with a logic AND, should give 0. If not, the action is performed.
+
+#### Contains
+The contains option allows specifying binary data that should trigger the action if it is found in the frame. 
 
 If necessary, new options could easily be implemented to customize the rules to special use cases.
 
