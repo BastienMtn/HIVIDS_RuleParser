@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include "can_rules_definitions.h"
 
+#define HEADER "#ifndef CAN_RULES_H\n#define CAN_RULES_H\n\n#include \"cansec_rules.h\"\n\nCANRule ruleTable[] = {\n"
+#define FOOTNOTE "};\n\nint ruleCount = %d;\n\n#endif // CAN_RULES_H\n"
+
 // Helper functions to map strings to enum values
 enum Action parse_action(const char *str)
 {
@@ -90,8 +93,6 @@ enum OptionType parse_optiontype(const char *str)
     exit(EXIT_FAILURE);
 }
 
-CANRule init_can_rule(const char *action_str, const char *extended_str, const char *id_str, const char *isRequest_str,
-                      const char *direction_str);
 
 const char *optiontype_to_string(enum OptionType option)
 {
@@ -160,10 +161,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    fprintf(output, "#ifndef CAN_RULES_H\n");
-    fprintf(output, "#define CAN_RULES_H\n\n");
-    fprintf(output, "#include \"cansec_rules.h\"\n\n");
-    fprintf(output, "CANRule ruleTable[] = {\n");
+    fprintf(output, HEADER);
 
     char line[1024], rule[1024];
     bool inside_options = false;
@@ -242,9 +240,7 @@ int main()
         inside_options = false;
     }
 
-    fprintf(output, "};\n\n");
-    fprintf(output, "int ruleCount = %d;\n\n", rule_count);
-    fprintf(output, "#endif // CAN_RULES_H\n");
+    fprintf(output, FOOTNOTE, rule_count);
 
     fclose(input);
     fclose(output);
