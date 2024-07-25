@@ -1,20 +1,21 @@
 alert C 0x100 D ->
 (
-    UpLimit:255;
-    DownLimit:0;
-    Length:8;
     Message:"Rule 1 : Alert on ID 100";
+    UpLimit:0-0|255;
+    DownLimit:0-3|0;
+    Length:8;
+    Contains:00101011;
 )
 drop C 0x110 D ->
 (
-    UpLimit:1024;
-    DownLimit:-1024;
+    UpLimit:0-3|1024;
+    DownLimit:0-2|-1024;
     Length:8;
     Format:FFFF0000FF00FF00;
 )
 block C 0x180 D <>
 (
-    UpLimit:512;
-    DownLimit:0;
+    UpLimit:0-4|512;
+    DownLimit:0-0|0;
     Length:8;
 )
