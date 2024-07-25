@@ -164,14 +164,11 @@ int main()
     fprintf(output, HEADER);
 
     char line[1024], rule[1024];
-    bool inside_options = false;
 
     int rule_count=0;
 
     while (fgets(line, sizeof(line), input))
     {
-        if (inside_options)
-            continue;
         // Initial parsing for the main components
         char action_str[16], extended_str[2], id_str[16], isRequest_str[2], direction_str[3];
         int num_scanned = sscanf(line, "%15s %1s %15s %1s %2s",
@@ -206,12 +203,11 @@ int main()
             return EXIT_FAILURE;
         }
 
-        inside_options = true;
         start_options++; // Move past the '('
         strcat(rule, "{");
         //CANSecOption options[10];
         int num_options = 0;
-        while (inside_options && fgets(line, sizeof(line), input))
+        while (fgets(line, sizeof(line), input))
         {
             if (strchr(line, ')'))
                 break;
@@ -235,9 +231,6 @@ int main()
 
         // Writing the rule to the output file
         fprintf(output, "%s", rule);
-
-        // TODO - Pass the end of the rule in the text file and go to the next
-        inside_options = false;
     }
 
     fprintf(output, FOOTNOTE, rule_count);
