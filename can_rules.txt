@@ -19,3 +19,9 @@ block C 0x180 D <>
     DownLimit:0-0|0;
     Length:8;
 )
+rewrite C 0x3C0 D <>
+(
+    Message:"Rewrite 3C0";
+    UpLimit:0-3|8388607;
+    Length:8;
+)
