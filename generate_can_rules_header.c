@@ -264,7 +264,7 @@ int main()
             {
                 printf("The option is not right!\nExpected pattern: %s, got \"%s\"\n",
                        get_option_value_pattern(option.type), (char *) option.value);
-                printf("Skipping option...");
+                printf("Skipping option...\n");
                 continue;
             }
             char optionString[1024];
