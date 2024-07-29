@@ -168,41 +168,27 @@ bool validate_option(CANSecOption option)
     regex_t regex;
     int reti;
     char* pattern = get_option_value_pattern(option.type);
-
-    int num_patterns = 1;
-//    if (option.type == UpLimit || option.type == DownLimit)
-//    {
-//        num_patterns = 2;
-//        pattern
-//    }
-    do
+    /* Compile regular expression */
+    reti = regcomp(&regex, pattern, 0);
+    if (reti)
     {
-        /* Compile regular expression */
-        reti = regcomp(&regex, pattern, 0);
-        if (reti)
-        {
-            fprintf(stderr, "Could not compile regex\n");
-            return false;
-        }
+        fprintf(stderr, "Could not compile regex\n");
+        return false;
+    }
 
-        /* Execute regular expression */
-        reti = regexec(&regex, option.value, 0, NULL, 0);
+    /* Execute regular expression */
+    reti = regexec(&regex, option.value, 0, NULL, 0);
 
-        if (reti > REG_NOMATCH) {
-            char msgbuf[100];
-            regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-            fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-            return false;
-        }
+    if (reti > REG_NOMATCH) {
+        char msgbuf[100];
+        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+        return false;
+    }
 
-        /* Free compiled regular expression if you want to use the regex_t again */
-        regfree(&regex);
-
-        if (reti != REG_NOERROR) return false;
-
-        num_patterns--;
-    }while(num_patterns > 0);
-    return true;
+    /* Free compiled regular expression if you want to use the regex_t again */
+    regfree(&regex);
+    return reti == REG_NOERROR;
 }
 
 // Main function to read the can_rules.txt and generate can_rules.h
@@ -265,7 +251,6 @@ int main()
         }
 
         strcat(rule, "{");
-        //CANSecOption options[10];
         int num_options = 0;
         while (fgets(line, sizeof(line), input))
         {
@@ -279,8 +264,9 @@ int main()
             {
                 printf("The option is not right!\nExpected pattern: %s, got \"%s\"\n",
                        get_option_value_pattern(option.type), (char *) option.value);
-                //return EXIT_FAILURE;
-            }else { printf("The option is well formatted!\n");}
+                printf("Skipping option...");
+                continue;
+            }
             char optionString[1024];
             char* format = "{%s,\"%s\"},";
             if (option.type == Message)
