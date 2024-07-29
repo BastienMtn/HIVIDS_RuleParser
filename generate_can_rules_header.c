@@ -150,9 +150,8 @@ char* get_option_value_pattern(enum OptionType type)
     {
         case UpLimit:
         case DownLimit:
-            // TODO : This regex with extended support almost works
-            //  (Removing anything before the pipe does not result in any match fail)
-            return "^[[:digit:]]-[[:digit:]]\\|[[:digit:]]$\0";
+            // We need a single backslash to escape correctly the pipe
+            return "^[0123456789]\\{1,\\}-[0123456789]\\{1,\\}\|\\{,1\\}[-]\\{0,1\\}[0123456789]\\{1,\\}$\0";
         case Format:
             return "^[[:xdigit:]]\\{1,\\}$\0";
         case Length:
@@ -170,33 +169,40 @@ bool validate_option(CANSecOption option)
     int reti;
     char* pattern = get_option_value_pattern(option.type);
 
-    /* Compile regular expression */
-    reti = regcomp(&regex, pattern, 0);
-    if(reti)
+    int num_patterns = 1;
+//    if (option.type == UpLimit || option.type == DownLimit)
+//    {
+//        num_patterns = 2;
+//        pattern
+//    }
+    do
     {
-        fprintf(stderr, "Could not compile regex\n");
-        return false;
-    }
+        /* Compile regular expression */
+        reti = regcomp(&regex, pattern, 0);
+        if (reti)
+        {
+            fprintf(stderr, "Could not compile regex\n");
+            return false;
+        }
 
-    /* Execute regular expression */
-    int flag = 0;
-    if (option.type == UpLimit || option.type == DownLimit)
-    {
-        flag = REG_EXTENDED;
-    }
-    reti = regexec(&regex, option.value, 0, NULL, flag);
+        /* Execute regular expression */
+        reti = regexec(&regex, option.value, 0, NULL, 0);
 
-    if (reti > REG_NOMATCH)
-    {
-        char msgbuf[100];
-        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-        return false;
-    }
+        if (reti > REG_NOMATCH) {
+            char msgbuf[100];
+            regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+            fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+            return false;
+        }
 
-    /* Free compiled regular expression if you want to use the regex_t again */
-    regfree(&regex);
-    return reti == REG_NOERROR;
+        /* Free compiled regular expression if you want to use the regex_t again */
+        regfree(&regex);
+
+        if (reti != REG_NOERROR) return false;
+
+        num_patterns--;
+    }while(num_patterns > 0);
+    return true;
 }
 
 // Main function to read the can_rules.txt and generate can_rules.h
