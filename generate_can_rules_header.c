@@ -256,8 +256,7 @@ int main()
         if (!fgets(line, sizeof(line), input))
             continue;
 
-        char *start_options = strchr(line, '(');
-        if (!start_options) {
+        if (!strchr(line, '(')) {
             snprintf(rule, 8, "NULL},\n");
             fprintf(stderr, "No options in rule: %s", line);
             fclose(input);
@@ -265,7 +264,6 @@ int main()
             return EXIT_FAILURE;
         }
 
-        start_options++; // Move past the '('
         strcat(rule, "{");
         //CANSecOption options[10];
         int num_options = 0;
