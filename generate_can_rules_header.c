@@ -1,3 +1,4 @@
+#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -143,6 +144,53 @@ CANRule init_can_rule(const char *action_str, const char *extended_str, const ch
     return rule;
 }
 
+char* get_option_value_pattern(enum OptionType type)
+{
+    switch (type)
+    {
+        case UpLimit:
+        case DownLimit:
+            // We need a single backslash to escape correctly the pipe
+            return "^[0123456789]\\{1,\\}-[0123456789]\\{1,\\}\|\\{,1\\}[-]\\{0,1\\}[0123456789]\\{1,\\}$\0";
+        case Format:
+            return "^[[:xdigit:]]\\{1,\\}$\0";
+        case Length:
+            return "^[[:digit:]]$\0";
+        case Message:
+            return "^\".*\"$\0";
+        case Contains:
+            return "^[01]\\{1,\\}$\0";
+    }
+}
+
+bool validate_option(CANSecOption option)
+{
+    regex_t regex;
+    int reti;
+    char* pattern = get_option_value_pattern(option.type);
+    /* Compile regular expression */
+    reti = regcomp(&regex, pattern, 0);
+    if (reti)
+    {
+        fprintf(stderr, "Could not compile regex\n");
+        return false;
+    }
+
+    /* Execute regular expression */
+    reti = regexec(&regex, option.value, 0, NULL, 0);
+
+    if (reti > REG_NOMATCH) {
+        char msgbuf[100];
+        regerror(reti, &regex, msgbuf, sizeof(msgbuf));
+        fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+        return false;
+    }
+
+    /* Free compiled regular expression if you want to use the regex_t again */
+    regfree(&regex);
+    return reti == REG_NOERROR;
+}
+
 // Main function to read the can_rules.txt and generate can_rules.h
 int main()
 {
@@ -194,8 +242,7 @@ int main()
         if (!fgets(line, sizeof(line), input))
             continue;
 
-        char *start_options = strchr(line, '(');
-        if (!start_options) {
+        if (!strchr(line, '(')) {
             snprintf(rule, 8, "NULL},\n");
             fprintf(stderr, "No options in rule: %s", line);
             fclose(input);
@@ -203,9 +250,7 @@ int main()
             return EXIT_FAILURE;
         }
 
-        start_options++; // Move past the '('
         strcat(rule, "{");
-        //CANSecOption options[10];
         int num_options = 0;
         while (fgets(line, sizeof(line), input))
         {
@@ -215,6 +260,13 @@ int main()
             CANSecOption option = parse_option(line);
             // Here you can store the option in a dynamic array if needed
             // For now, just print the parsed options
+            if (!validate_option(option))
+            {
+                printf("The option is not right!\nExpected pattern: %s, got \"%s\"\n",
+                       get_option_value_pattern(option.type), (char *) option.value);
+                printf("Skipping option...\n");
+                continue;
+            }
             char optionString[1024];
             char* format = "{%s,\"%s\"},";
             if (option.type == Message)
