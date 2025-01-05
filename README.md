@@ -1,5 +1,5 @@
 # HIVIDS_RuleParser
-This project is meant to be used with the HIVIDS project, see [HIVIDS project repository](https://github.com/BastienMtn/HIVIDS).
+This project is meant to be used with the HIVIDS project, see [HIVIDS project repository](https://github.com/BastienMtn/HIVIDS_DualCore).
 
 This program generates a **can_rules.h** C header file, that can be included in the HIVIDS project, from a **can_rules.txt** file.
 
